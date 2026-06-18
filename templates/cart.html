@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block title %}Cart — ShopSphere{% endblock %}
+
+{% block extra_head %}
+<style>
+.cart-layout {
+  max-width: 1100px; margin: 0 auto;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  align-items: start;
+}
+.cart-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 20px;
+  align-items: center;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.cart-item img {
+  width: 80px; height: 80px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+.cart-item-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+.cart-item-price {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.cart-item-controls {
+  display: flex; align-items: center; gap: 12px;
+}
+.cart-item-subtotal {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-lime);
+  min-width: 80px;
+  text-align: right;
+}
+.remove-btn {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: #ef4444;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.remove-btn:hover { background: rgba(239,68,68,0.2); }
+
+/* Linked list visual */
+.ll-visual {
+  display: flex; align-items: center; gap: 0;
+  overflow-x: auto; padding: 20px 0;
+  margin-bottom: 32px;
+}
+.ll-node {
+  display: flex; align-items: center;
+  flex-shrink: 0;
+}
+.ll-box {
+  background: var(--clay-lift);
+  border: 1.5px solid rgba(139,92,246,0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent-cyan);
+  line-height: 1.5;
+  min-width: 90px;
+}
+.ll-arrow {
+  color: var(--accent-violet);
+  font-size: 1.2rem;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+.ll-null {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  padding: 0 8px;
+}
+
+/* Summary card */
+.summary-card { padding: 28px; }
+.summary-row {
+  display: flex; justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(139,92,246,0.08);
+  font-size: 0.9rem;
+}
+.summary-row:last-of-type { border-bottom: none; }
+.summary-total {
+  display: flex; justify-content: space-between;
+  padding: 16px 0 0;
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.4rem;
+}
+.summary-total span:last-child { color: var(--accent-lime); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:1100px;margin:0 auto;padding:32px 40px 0">
+  <div class="section-label">Linked List → Shopping Cart</div>
+  <h1 class="font-display kinetic" style="font-size:2.5rem;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px">
+    Your Cart
+  </h1>
+  <p class="text-muted" style="font-size:0.85rem;margin-bottom:24px">
+    Each item is a node in a singly linked list. Insertion O(1), traversal for total O(n).
+  </p>
+
+  <!-- LINKED LIST VISUAL -->
+  {% if items %}
+  <div class="ll-visual">
+    <div class="ll-node">
+      <div class="ll-box" style="border-color:rgba(6,182,212,0.5);color:var(--accent-violet)">
+        HEAD<br>pointer
+      </div>
+      <span class="ll-arrow">→</span>
+    </div>
+    {% for item in items %}
+    <div class="ll-node">
+      <div class="ll-box">
+        <div>id: {{ item.product_id }}</div>
+        <div>qty: {{ item.quantity }}</div>
+        <div>next: {% if not loop.last %}→{% else %}NULL{% endif %}</div>
+      </div>
+      {% if not loop.last %}
+      <span class="ll-arrow">→</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <span class="ll-null">→ NULL</span>
+  </div>
+  {% endif %}
+</div>
+
+<div class="cart-layout">
+  <div>
+    {% if items %}
+      {% for item in items %}
+      <div class="clay-card cart-item" id="cartItem{{ item.product_id }}">
+        <img src="https://picsum.photos/seed/{{ item.product_id }}/160/160" alt="{{ item.name }}">
+        <div>
+          <div class="cart-item-name">{{ item.name }}</div>
+          <div class="cart-item-price">₹{{ "%.2f"|format(item.price) }} each</div>
+          <div style="margin-top:4px">
+            <span class="ds-badge">Node #{{ loop.index }}</span>
+          </div>
+        </div>
+        <div class="cart-item-controls">
+          <div class="cart-item-subtotal">₹{{ "%.0f"|format(item.subtotal) }}</div>
+          <span style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">×{{ item.quantity }}</span>
+          <button class="remove-btn" onclick="removeItem({{ item.product_id }})">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div style="margin-top:16px;display:flex;gap:12px">
+        <a href="/products" class="btn btn-ghost">← Continue Shopping</a>
+        <form method="POST" action="/cart/clear" style="margin-left:auto">
+          <button type="submit" class="btn btn-ghost" style="color:#ef4444;border-color:#ef4444">
+            Clear Cart
+          </button>
+        </form>
+      </div>
+    {% else %}
+      <div class="clay-card" style="padding:60px;text-align:center">
+        <div style="font-size:4rem;margin-bottom:16px">○</div>
+        <div class="font-display" style="font-size:1.5rem;font-weight:700;margin-bottom:8px">
+          Linked List is empty
+        </div>
+        <p class="text-muted mb-24">HEAD → NULL. Add some products.</p>
+        <a href="/products" class="btn btn-primary">Browse Products</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ORDER SUMMARY -->
+  {% if items %}
+  <div>
+    <div class="clay-card summary-card">
+      <div class="section-label" style="margin-bottom:16px">Order Summary</div>
+
+      {% for item in items %}
+      <div class="summary-row">
+        <span style="color:var(--text-muted)">{{ item.name[:24] }}{% if item.name|length > 24 %}…{% endif %} ×{{ item.quantity }}</span>
+        <span class="font-mono">₹{{ "%.0f"|format(item.subtotal) }}</span>
+      </div>
+      {% endfor %}
+
+      <div class="summary-row">
+        <span class="text-muted">Shipping</span>
+        <span class="font-mono" style="color:var(--accent-lime)">FREE</span>
+      </div>
+
+      <div class="summary-total">
+        <span>Total</span>
+        <span>₹{{ "%.0f"|format(total) }}</span>
+      </div>
+
+      <form method="POST" action="/orders/checkout" style="margin-top:24px">
+        <button type="submit" class="btn btn-primary w-full" style="justify-content:center;width:100%">
+          Place Order → Queue
+        </button>
+      </form>
+      <p style="text-align:center;margin-top:12px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
+        Order enters FIFO Queue on submit
+      </p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function removeItem(productId) {
+  const el = document.getElementById('cartItem' + productId);
+  el.style.opacity = '0'; el.style.transform = 'translateX(-20px)';
+  el.style.transition = 'all 0.3s ease';
+  setTimeout(async () => {
+    const res = await fetch('/cart/remove', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ product_id: productId })
+    });
+    window.location.reload();
+  }, 300);
+}
+</script>
+{% endblock %}

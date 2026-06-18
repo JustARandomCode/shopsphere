@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Order Confirmed — ShopSphere{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:80px auto;padding:40px;text-align:center">
+  <div class="clay-card" style="padding:60px 40px">
+    <div style="font-size:4rem;margin-bottom:24px">✓</div>
+    <div class="section-label" style="justify-content:center;margin-bottom:12px">Queue → Processing</div>
+    <h1 class="font-display kinetic" style="font-size:2.5rem;font-weight:900;letter-spacing:-0.02em;margin-bottom:12px">
+      Order Placed
+    </h1>
+    <p class="text-muted" style="margin-bottom:32px">
+      Order <span class="font-mono" style="color:var(--accent-violet)">#{{ order.id }}</span>
+      has entered the FIFO order queue. Total:
+      <span class="font-mono" style="color:var(--accent-lime)">₹{{ "%.2f"|format(order.total) }}</span>
+    </p>
+    <div class="ds-badge" style="display:inline-flex;margin-bottom:32px">
+      QUEUE → Order enqueued at position {{ order.id }}
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <a href="/" class="btn btn-primary">Continue Shopping</a>
+      <a href="/orders/queue" class="btn btn-ghost">View Queue</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

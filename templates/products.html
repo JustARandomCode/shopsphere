@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% block title %}Catalog — ShopSphere{% endblock %}
+
+{% block extra_head %}
+<style>
+.catalog-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+  padding: 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.sidebar {
+  position: sticky; top: 100px;
+  align-self: start;
+}
+.filter-card {
+  padding: 28px;
+  margin-bottom: 20px;
+}
+.filter-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+.category-list { list-style: none; }
+.category-list li { margin-bottom: 4px; }
+.category-list a {
+  display: block; padding: 8px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.category-list a:hover,
+.category-list a.active {
+  background: rgba(139,92,246,0.15);
+  color: var(--text-primary);
+}
+.range-inputs { display: flex; gap: 12px; align-items: center; }
+.range-inputs input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(139,92,246,0.2);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  outline: none;
+}
+.range-inputs input:focus { border-color: var(--accent-violet); }
+.range-sep { color: var(--text-dim); flex-shrink: 0; }
+
+.page-header { margin-bottom: 32px; }
+.page-header h1 {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.result-count {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.pagination {
+  display: flex; justify-content: center; gap: 8px;
+  margin-top: 48px;
+}
+.page-btn {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--clay-card);
+  border: 1.5px solid rgba(139,92,246,0.15);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.page-btn:hover, .page-btn.active {
+  background: rgba(139,92,246,0.2);
+  border-color: var(--accent-violet);
+  color: var(--text-primary);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="catalog-layout">
+
+  <!-- SIDEBAR (BST price filter) -->
+  <aside class="sidebar">
+    <div class="clay-card filter-card">
+      <div class="filter-title">BST → Price Range</div>
+      <form method="GET" action="/products" id="filterForm">
+        {% if current_category %}
+        <input type="hidden" name="category" value="{{ current_category }}">
+        {% endif %}
+        <div class="range-inputs">
+          <input type="number" name="min_price" placeholder="Min ₹"
+                 value="{{ min_price if min_price else '' }}"
+                 oninput="debounceFilter()">
+          <span class="range-sep">—</span>
+          <input type="number" name="max_price" placeholder="Max ₹"
+                 value="{{ max_price if max_price else '' }}"
+                 oninput="debounceFilter()">
+        </div>
+        <div style="margin-top:12px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
+          Range query on in-memory BST — O(k + log n)
+        </div>
+      </form>
+    </div>
+
+    <div class="clay-card filter-card">
+      <div class="filter-title">Array → Categories</div>
+      <ul class="category-list">
+        <li><a href="/products" class="{{ 'active' if not current_category }}">All</a></li>
+        {% for cat in categories %}
+        <li>
+          <a href="/products?category={{ cat }}"
+             class="{{ 'active' if current_category == cat }}">{{ cat }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="clay-card filter-card" style="padding:20px">
+      <div class="filter-title">DS Status</div>
+      <div id="dsStatus" style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);line-height:2">
+        Loading...
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN LISTING -->
+  <div>
+    <div class="page-header">
+      <div class="section-label">{{ current_category or 'All Categories' }}</div>
+      <h1 class="kinetic">Product Catalog</h1>
+      <div class="result-count">{{ total }} items · Page {{ page }}</div>
+    </div>
+
+    <div class="product-grid">
+      {% for p in products %}
+      <div class="clay-card product-card" onclick="window.location='/products/{{ p.id }}'">
+        <div class="img-wrap">
+          <img src="{{ p.image_url or 'https://picsum.photos/seed/' + p.id|string + '/400/400' }}"
+               alt="{{ p.name }}" onerror="this.src='https://picsum.photos/seed/{{ p.id }}/400/400'">
+        </div>
+        {% if p.category %}<span class="tag">{{ p.category }}</span>{% endif %}
+        {% if p.discount_pct %}<span class="discount-tag">-{{ p.discount_pct }}%</span>{% endif %}
+        <div style="padding: 4px 16px 16px">
+          <div class="name">{{ p.name }}</div>
+          <div class="text-muted text-sm mt-8" style="height:2.6em;overflow:hidden">
+            {{ p.description[:80] if p.description else '' }}…
+          </div>
+          <div class="card-footer mt-16">
+            <div>
+              <span class="price">₹{{ "%.0f"|format(p.price) }}</span>
+              {% if p.discount_pct %}
+              <span class="price-original">₹{{ "%.0f"|format(p.price / (1 - p.discount_pct/100)) }}</span>
+              {% endif %}
+            </div>
+            <button class="btn btn-primary btn-sm"
+              onclick="event.stopPropagation(); addToCart({{ p.id }}, {{ p.price }}, '{{ p.name }}')">
+              + Add
+            </button>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div style="grid-column:1/-1;text-align:center;padding:80px;color:var(--text-dim)">
+        <div style="font-size:3rem;margin-bottom:16px">○</div>
+        <div>No products found in this range.</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- PAGINATION -->
+    {% set total_pages = ((total - 1) // 12 + 1) %}
+    {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+      <a href="?page={{ page-1 }}{% if current_category %}&category={{ current_category }}{% endif %}" class="page-btn">←</a>
+      {% endif %}
+      {% for i in range(1, total_pages+1) %}
+        {% if i <= 5 or i == total_pages %}
+        <a href="?page={{ i }}{% if current_category %}&category={{ current_category }}{% endif %}"
+           class="page-btn {{ 'active' if i == page }}">{{ i }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page < total_pages %}
+      <a href="?page={{ page+1 }}{% if current_category %}&category={{ current_category }}{% endif %}" class="page-btn">→</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// DS Status live pull
+async function loadDsStatus() {
+  const res = await fetch('/api/ds/status');
+  const d = await res.json();
+  document.getElementById('dsStatus').innerHTML = `
+    <div>ARRAY: ${d.array_catalog_size} products</div>
+    <div>QUEUE: ${d.queue_orders_waiting} pending</div>
+    <div>HEAP: ${d.heap_deals_loaded} deals</div>
+    <div>TRIE: ${d.trie_ready ? 'ready' : 'loading'}</div>
+    <div>BST: ${d.bst_ready ? 'ready' : 'loading'}</div>
+    <div>GRAPH: ${d.graph_ready ? 'ready' : 'loading'}</div>
+  `;
+}
+loadDsStatus();
+
+// Debounce price filter
+let filterTimer;
+function debounceFilter() {
+  clearTimeout(filterTimer);
+  filterTimer = setTimeout(() => {
+    document.getElementById('filterForm').submit();
+  }, 600);
+}
+</script>
+{% endblock %}

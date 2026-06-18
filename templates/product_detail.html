@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} — ShopSphere{% endblock %}
+
+{% block extra_head %}
+<style>
+.detail-layout {
+  max-width: 1200px; margin: 0 auto;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+.product-image-wrap {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--clay-card);
+  border: 1.5px solid rgba(139,92,246,0.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), var(--clay-glow);
+}
+.product-image-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.product-image-wrap:hover img { transform: scale(1.05); }
+
+.product-info { position: sticky; top: 100px; }
+.product-category {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.product-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+.product-price-block {
+  display: flex; align-items: baseline; gap: 16px;
+  margin-bottom: 24px;
+}
+.product-price {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--accent-lime);
+}
+.product-price-original {
+  font-size: 1.2rem;
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+.product-discount {
+  background: var(--accent-pink);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.product-desc {
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+.product-meta {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 32px;
+}
+.meta-item {
+  padding: 16px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(139,92,246,0.1);
+}
+.meta-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.meta-value {
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: var(--font-display);
+}
+.action-row { display: flex; gap: 12px; align-items: center; }
+.qty-control {
+  display: flex; align-items: center; gap: 0;
+  border: 1.5px solid rgba(139,92,246,0.3);
+  border-radius: 100px;
+  overflow: hidden;
+}
+.qty-btn {
+  width: 40px; height: 44px;
+  background: none; border: none;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.qty-btn:hover { background: rgba(139,92,246,0.15); }
+.qty-num {
+  width: 40px; text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* DS CALLOUT STRIP */
+.ds-strip {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 24px; padding-top: 24px;
+  border-top: 1px solid rgba(139,92,246,0.1);
+}
+
+/* RECS */
+.recs-section {
+  max-width: 1200px; margin: 0 auto;
+  padding: 0 40px 60px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div style="max-width:1200px;margin:0 auto;padding:24px 40px 0">
+  <div style="display:flex;gap:8px;align-items:center;font-size:0.85rem;color:var(--text-dim)">
+    {% if back_id %}
+    <a href="/products/{{ back_id }}" class="btn btn-ghost btn-sm">← Back</a>
+    {% endif %}
+    <a href="/products" style="color:var(--text-dim);text-decoration:none">Catalog</a>
+    <span>/</span>
+    <a href="/products?category={{ product.category }}" style="color:var(--text-dim);text-decoration:none">{{ product.category }}</a>
+    <span>/</span>
+    <span style="color:var(--text-muted)">{{ product.name[:30] }}</span>
+    <span class="ds-badge" style="margin-left:auto">STACK → History</span>
+  </div>
+</div>
+
+<div class="detail-layout">
+  <!-- IMAGE (parallax on scroll) -->
+  <div>
+    <div class="product-image-wrap">
+      <img src="{{ product.image_url or 'https://picsum.photos/seed/' + product.id|string + '/800/800' }}"
+           alt="{{ product.name }}"
+           id="heroImg"
+           onerror="this.src='https://picsum.photos/seed/{{ product.id }}/800/800'">
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="product-info">
+    <div class="product-category">{{ product.category }}</div>
+    <h1 class="product-name kinetic">{{ product.name }}</h1>
+
+    <div class="product-price-block">
+      <span class="product-price">₹{{ "%.0f"|format(product.price) }}</span>
+      {% if product.discount_pct %}
+      <span class="product-price-original">₹{{ "%.0f"|format(product.price / (1 - product.discount_pct/100)) }}</span>
+      <span class="product-discount">{{ product.discount_pct }}% OFF</span>
+      {% endif %}
+    </div>
+
+    <p class="product-desc">{{ product.description or 'Premium quality product. Add this to your cart and experience top-tier value.' }}</p>
+
+    <div class="product-meta">
+      <div class="meta-item">
+        <div class="meta-label">Stock</div>
+        <div class="meta-value" style="color: {{ 'var(--accent-lime)' if product.stock > 5 else 'var(--accent-pink)' }}">
+          {{ product.stock }} units
+        </div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Product ID</div>
+        <div class="meta-value font-mono">#{{ product.id }}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Category</div>
+        <div class="meta-value">{{ product.category }}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Discount</div>
+        <div class="meta-value" style="color:var(--accent-pink)">
+          {{ product.discount_pct }}%
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <span class="qty-num" id="qty">1</span>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+      <button class="btn btn-primary" onclick="addToCartQty()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
+        </svg>
+        Add to Cart (Linked List)
+      </button>
+    </div>
+    <a href="/cart" class="btn btn-ghost w-full text-center mt-16" style="justify-content:center">View Cart →</a>
+
+    <div class="ds-strip">
+      <span class="ds-badge">LINKED LIST → Cart node inserted</span>
+      <span class="ds-badge">STACK → Page added to history</span>
+      <span class="ds-badge">DEQUE → Recently viewed updated</span>
+      <span class="ds-badge">GRAPH → Co-purchase edge on checkout</span>
+    </div>
+  </div>
+</div>
+
+<!-- GRAPH RECOMMENDATIONS -->
+{% if recommendations %}
+<div class="recs-section">
+  <div class="section-label">Graph (BFS) → Recommendations</div>
+  <h2 class="font-display kinetic" style="font-size:1.8rem;font-weight:900;margin-bottom:8px;letter-spacing:-0.02em">
+    Customers Also Bought
+  </h2>
+  <p class="text-muted mb-24" style="font-size:0.85rem">
+    BFS traversal of the co-purchase graph. Edge weights = frequency.
+  </p>
+  <div class="product-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+    {% for r in recommendations %}
+    <div class="clay-card product-card" onclick="window.location='/products/{{ r.id }}'">
+      <div class="img-wrap">
+        <img src="{{ r.image_url or 'https://picsum.photos/seed/' + r.id|string + '/400/400' }}"
+             alt="{{ r.name }}" onerror="this.src='https://picsum.photos/seed/{{ r.id }}/400/400'">
+      </div>
+      <div style="padding:4px 14px 14px">
+        <div class="name">{{ r.name }}</div>
+        <div class="card-footer mt-16">
+          <span class="price">₹{{ "%.0f"|format(r.price) }}</span>
+          <button class="btn btn-ghost btn-sm"
+            onclick="event.stopPropagation(); addToCart({{ r.id }}, {{ r.price }}, '{{ r.name }}')">+</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let qty = 1;
+function changeQty(d) {
+  qty = Math.max(1, qty + d);
+  document.getElementById('qty').textContent = qty;
+}
+function addToCartQty() {
+  fetch('/cart/add', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      product_id: {{ product.id }},
+      quantity: qty,
+      price: {{ product.price }},
+      name: {{ product.name|tojson }}
+    })
+  }).then(r => r.json()).then(d => {
+    document.getElementById('cartBadge').textContent = d.count;
+    // visual feedback
+    const btn = document.querySelector('.btn-primary');
+    btn.textContent = '✓ Added!';
+    btn.style.background = 'linear-gradient(135deg, #a3e635, #06b6d4)';
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg> Add to Cart (Linked List)`;
+      btn.style.background = '';
+    }, 2000);
+  });
+}
+
+// Parallax on scroll for product image
+const heroImg = document.getElementById('heroImg');
+window.addEventListener('scroll', () => {
+  const offset = window.scrollY * 0.12;
+  heroImg.style.transform = `scale(1.05) translateY(${offset}px)`;
+}, { passive: true });
+</script>
+{% endblock %}

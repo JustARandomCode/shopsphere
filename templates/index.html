@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+{% block title %}ShopSphere — Smart E-Commerce{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── HERO ─────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex; align-items: center;
+  overflow: hidden;
+  padding: 120px 40px 80px;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(139,92,246,0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 20% 70%, rgba(236,72,153,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 80% 80%, rgba(6,182,212,0.08) 0%, transparent 50%);
+}
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: orbFloat 8s ease-in-out infinite alternate;
+}
+.orb-1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(139,92,246,0.25), transparent);
+  top: -100px; right: 5%;
+  animation-delay: 0s;
+}
+.orb-2 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(236,72,153,0.2), transparent);
+  bottom: 10%; left: 10%;
+  animation-delay: -3s;
+}
+.orb-3 {
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(6,182,212,0.2), transparent);
+  top: 30%; left: 40%;
+  animation-delay: -5s;
+}
+@keyframes orbFloat {
+  from { transform: translateY(0) scale(1); }
+  to { transform: translateY(-40px) scale(1.1); }
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  max-width: 760px;
+}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  margin-bottom: 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.hero-eyebrow::before {
+  content: ''; width: 40px; height: 1px; background: var(--accent-cyan);
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 7rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin-bottom: 32px;
+}
+.hero-title .line-1 { display: block; }
+.hero-title .line-2 {
+  display: block;
+  background: linear-gradient(135deg, var(--accent-violet) 0%, var(--accent-pink) 50%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% auto;
+  animation: gradientShift 4s linear infinite;
+}
+@keyframes gradientShift {
+  from { background-position: 0% center; }
+  to { background-position: 200% center; }
+}
+.hero-title .line-3 {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.65em;
+  letter-spacing: 0.05em;
+  font-weight: 400;
+  margin-top: 8px;
+}
+.hero-sub {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+.hero-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+/* ── DS TICKER ────────────────────────────────────────── */
+.ds-ticker {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(139,92,246,0.08);
+  border-top: 1px solid rgba(139,92,246,0.15);
+  border-bottom: 1px solid rgba(139,92,246,0.15);
+  overflow: hidden;
+  height: 40px;
+  display: flex; align-items: center;
+}
+.ds-ticker-inner {
+  display: flex; gap: 60px;
+  white-space: nowrap;
+  animation: ticker 25s linear infinite;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+.ds-ticker-inner span { color: var(--accent-violet); }
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ── CATEGORIES GRID ────────────────────────────────────── */
+.category-pills {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+.category-pill {
+  padding: 10px 22px;
+  border-radius: 100px;
+  background: var(--clay-card);
+  border: 1.5px solid rgba(139,92,246,0.15);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s var(--transition);
+  text-decoration: none;
+}
+.category-pill:hover {
+  background: rgba(139,92,246,0.15);
+  border-color: var(--accent-violet);
+  color: var(--text-primary);
+  transform: translateY(-3px);
+}
+
+/* ── DEALS SECTION ───────────────────────────────────────── */
+.deal-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--clay-card), var(--clay-lift));
+}
+.deal-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 60%, rgba(139,92,246,0.1));
+  pointer-events: none;
+}
+.deal-heat {
+  position: absolute; top: 16px; left: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--accent-pink);
+  text-transform: uppercase;
+}
+.deal-discount {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--accent-pink);
+  line-height: 1;
+}
+.deal-name {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 8px 0 4px;
+  font-family: var(--font-display);
+}
+
+/* ── STATS BAR ─────────────────────────────────────────── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  background: rgba(139,92,246,0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 40px 0;
+  border: 1.5px solid rgba(139,92,246,0.1);
+}
+.stat-item {
+  padding: 32px 24px;
+  background: var(--clay-surface);
+  text-align: center;
+}
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--accent-violet), var(--accent-cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO ─────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-orb orb-1" data-parallax="0.15"></div>
+  <div class="hero-orb orb-2" data-parallax="0.25"></div>
+  <div class="hero-orb orb-3" data-parallax="-0.1"></div>
+
+  <div class="hero-content container">
+    <div class="hero-eyebrow">10 Data Structures · 1 Platform</div>
+
+    <h1 class="hero-title">
+      <span class="line-1 kinetic">Every Buy,</span>
+      <span class="line-2">Architectured.</span>
+      <span class="line-3">Array · Linked List · Stack · Queue · Hash Map · BST · Heap · Graph · Trie · Deque</span>
+    </h1>
+
+    <p class="hero-sub kinetic">
+      ShopSphere is the only e-commerce platform where every feature is a data structure running live under the hood.
+    </p>
+
+    <div class="hero-actions">
+      <a href="/products" class="btn btn-primary">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        Shop Now
+      </a>
+      <a href="#deals" class="btn btn-ghost">Flash Deals</a>
+    </div>
+  </div>
+
+  <!-- DS TICKER -->
+  <div class="ds-ticker">
+    <div class="ds-ticker-inner">
+      <span>ARRAY</span> → Product Catalog Pagination &nbsp;|&nbsp;
+      <span>LINKED LIST</span> → Shopping Cart &nbsp;|&nbsp;
+      <span>STACK</span> → Browsing History &nbsp;|&nbsp;
+      <span>QUEUE</span> → Order Processing &nbsp;|&nbsp;
+      <span>HASH MAP</span> → Session Store &nbsp;|&nbsp;
+      <span>MIN-HEAP</span> → Deal Ranking &nbsp;|&nbsp;
+      <span>BST</span> → Price Filter &nbsp;|&nbsp;
+      <span>GRAPH</span> → Recommendations &nbsp;|&nbsp;
+      <span>TRIE</span> → Search Autocomplete &nbsp;|&nbsp;
+      <span>DEQUE</span> → Recently Viewed &nbsp;|&nbsp;
+      <!-- repeat for seamless loop -->
+      <span>ARRAY</span> → Product Catalog Pagination &nbsp;|&nbsp;
+      <span>LINKED LIST</span> → Shopping Cart &nbsp;|&nbsp;
+      <span>STACK</span> → Browsing History &nbsp;|&nbsp;
+      <span>QUEUE</span> → Order Processing &nbsp;|&nbsp;
+      <span>HASH MAP</span> → Session Store &nbsp;|&nbsp;
+      <span>MIN-HEAP</span> → Deal Ranking &nbsp;|&nbsp;
+      <span>BST</span> → Price Filter &nbsp;|&nbsp;
+      <span>GRAPH</span> → Recommendations &nbsp;|&nbsp;
+      <span>TRIE</span> → Search Autocomplete &nbsp;|&nbsp;
+      <span>DEQUE</span> → Recently Viewed
+    </div>
+  </div>
+</section>
+
+<!-- STATS ─────────────────────────────────────────────── -->
+<div class="container">
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num">10</div>
+      <div class="stat-label">Data Structures</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">O(1)</div>
+      <div class="stat-label">Cart Operations</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">O(m)</div>
+      <div class="stat-label">Search Prefix</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">O(k·logn)</div>
+      <div class="stat-label">Deal Ranking</div>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORIES ─────────────────────────────────────────── -->
+<div class="container section">
+  <div class="section-label">Browse by Category</div>
+  <h2 class="font-display kinetic" style="font-size:2.2rem;font-weight:900;margin-bottom:32px;letter-spacing:-0.02em;">
+    What are you looking for?
+  </h2>
+  <div class="category-pills">
+    {% for cat in categories %}
+    <a href="/products?category={{ cat }}" class="category-pill">{{ cat }}</a>
+    {% endfor %}
+    <a href="/products" class="category-pill" style="border-color:var(--accent-violet);color:var(--accent-violet);">All Products</a>
+  </div>
+</div>
+
+<!-- FLASH DEALS (Min-Heap) ──────────────────────────────── -->
+<div class="container section" id="deals">
+  <div class="section-label">Min-Heap → Flash Deals</div>
+  <h2 class="font-display kinetic" style="font-size:2.2rem;font-weight:900;margin-bottom:8px;letter-spacing:-0.02em;">
+    Best Deals Right Now
+  </h2>
+  <p class="text-muted mb-24" style="font-size:0.9rem;">
+    Ranked by discount % using a min-heap. Highest discount surfaces to top in O(k log n).
+  </p>
+
+  <div class="product-grid">
+    {% for p in top_deals %}
+    <div class="clay-card product-card" onclick="window.location='/products/{{ p.id }}'">
+      <div class="img-wrap">
+        <img src="{{ p.image_url or 'https://picsum.photos/seed/' + p.id|string + '/400/400' }}"
+             alt="{{ p.name }}" onerror="this.src='https://picsum.photos/seed/{{ p.id }}/400/400'">
+      </div>
+      {% if p.discount_pct %}
+      <span class="discount-tag">-{{ p.discount_pct }}%</span>
+      {% endif %}
+      <span class="tag deal-heat">🔥 DEAL</span>
+      <div style="padding: 4px 16px 16px">
+        <div class="deal-discount">{{ p.discount_pct }}% OFF</div>
+        <div class="deal-name">{{ p.name }}</div>
+        <div class="card-footer">
+          <div>
+            <span class="price">₹{{ "%.0f"|format(p.price * (1 - p.discount_pct/100)) }}</span>
+            <span class="price-original">₹{{ "%.0f"|format(p.price) }}</span>
+          </div>
+          <button class="btn btn-primary btn-sm"
+            onclick="event.stopPropagation(); addToCart({{ p.id }}, {{ p.price }}, '{{ p.name }}')">
+            + Cart
+          </button>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div style="grid-column:1/-1; text-align:center; color:var(--text-dim); padding:40px;">
+      No deals yet. Add products with discounts to see the heap in action.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- FEATURED (Array) ─────────────────────────────────────── -->
+<div class="container section">
+  <div class="section-label">Array → Featured Products</div>
+  <h2 class="font-display kinetic" style="font-size:2.2rem;font-weight:900;margin-bottom:8px;letter-spacing:-0.02em;">
+    New Arrivals
+  </h2>
+  <p class="text-muted mb-24" style="font-size:0.9rem;">
+    Paginated from an array-backed catalog. O(1) index access.
+  </p>
+  <div class="product-grid">
+    {% for p in featured %}
+    <div class="clay-card product-card" onclick="window.location='/products/{{ p.id }}'">
+      <div class="img-wrap">
+        <img src="{{ p.image_url or 'https://picsum.photos/seed/' + p.id|string + '/400/400' }}"
+             alt="{{ p.name }}" onerror="this.src='https://picsum.photos/seed/{{ p.id }}/400/400'">
+      </div>
+      {% if p.category %}<span class="tag">{{ p.category }}</span>{% endif %}
+      {% if p.discount_pct %}<span class="discount-tag">-{{ p.discount_pct }}%</span>{% endif %}
+      <div style="padding: 4px 16px 16px">
+        <div class="name">{{ p.name }}</div>
+        <div class="card-footer">
+          <span class="price">₹{{ "%.0f"|format(p.price) }}</span>
+          <button class="btn btn-ghost btn-sm"
+            onclick="event.stopPropagation(); addToCart({{ p.id }}, {{ p.price }}, '{{ p.name }}')">
+            + Add
+          </button>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div style="grid-column:1/-1; text-align:center; color:var(--text-dim); padding:40px;">
+      No products yet. Seed the database to populate.
+    </div>
+    {% endfor %}
+  </div>
+  <div class="text-center mt-32">
+    <a href="/products" class="btn btn-ghost">View All Products →</a>
+  </div>
+</div>
+
+<!-- RECENTLY VIEWED (Deque) ─────────────────────────────── -->
+{% if recently_viewed %}
+<div class="container section">
+  <div class="section-label">Deque → Recently Viewed</div>
+  <h2 class="font-display" style="font-size:1.6rem;font-weight:800;margin-bottom:24px;letter-spacing:-0.02em;">
+    Continue Browsing
+  </h2>
+  <div class="product-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+    {% for p in recently_viewed %}
+    <a href="/products/{{ p.id }}" class="clay-card product-card" style="text-decoration:none;color:inherit">
+      <div class="img-wrap" style="aspect-ratio:1">
+        <img src="{{ p.image_url or 'https://picsum.photos/seed/' + p.id|string + '/400/400' }}"
+             alt="{{ p.name }}" onerror="this.src='https://picsum.photos/seed/{{ p.id }}/400/400'">
+      </div>
+      <div style="padding:8px 12px 12px">
+        <div class="name" style="font-size:0.85rem">{{ p.name }}</div>
+        <div class="price" style="font-size:0.9rem">₹{{ "%.0f"|format(p.price) }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

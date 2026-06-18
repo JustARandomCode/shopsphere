@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Login' if mode == 'login' else 'Register' }} — ShopSphere{% endblock %}
+{% block content %}
+<div style="max-width:440px;margin:80px auto;padding:40px">
+  <div class="clay-card" style="padding:40px">
+    <div class="section-label" style="margin-bottom:12px">Hash Map → Session Store</div>
+    <h1 class="font-display" style="font-size:2rem;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px">
+      {{ 'Welcome back' if mode == 'login' else 'Create account' }}
+    </h1>
+    <p class="text-muted mb-24" style="font-size:0.85rem">
+      Your session is stored in a custom hash map with separate chaining.
+    </p>
+
+    <form method="POST">
+      {% if mode == 'register' %}
+      <div class="form-group">
+        <label>Username</label>
+        <input class="input" type="text" name="username" required placeholder="your_username">
+      </div>
+      {% endif %}
+      <div class="form-group">
+        <label>Email</label>
+        <input class="input" type="email" name="email" required placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input class="input" type="password" name="password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary w-full" style="width:100%;justify-content:center">
+        {{ 'Sign In' if mode == 'login' else 'Create Account' }}
+      </button>
+    </form>
+
+    <p style="text-align:center;margin-top:20px;font-size:0.85rem;color:var(--text-muted)">
+      {% if mode == 'login' %}
+      No account? <a href="/auth/register" style="color:var(--accent-violet)">Register</a>
+      {% else %}
+      Already have one? <a href="/auth/login" style="color:var(--accent-violet)">Sign in</a>
+      {% endif %}
+    </p>
+  </div>
+</div>
+{% endblock %}

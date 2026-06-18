@@ -4,6 +4,7 @@ from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from dotenv import load_dotenv
+from flasgger import Swagger
 load_dotenv()
 
 db = SQLAlchemy()
@@ -12,6 +13,7 @@ login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='static')
+    swagger = Swagger(app)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'shopsphere-dev-key-change-in-prod')
 
     db_url = os.environ.get('DATABASE_URL', '')
